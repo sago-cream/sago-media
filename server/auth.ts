@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { config, publicOrigin, publicUrl } from "./config";
 import { cleanExpired, database, deviceKey, normalizedDeviceName } from "./database";
+import { notifyAccessRequest } from "./notifications";
 import { authPage, digest, escapeHtml, future, html, json, now, randomToken, response, safeEqual } from "./shared";
 
 export type Actor = { id: string; login: string };
@@ -77,7 +78,12 @@ export async function finishGithubOAuth(url: URL) {
   if (!user.id || !user.login) return response("Could not read GitHub identity.\n", 502);
   const githubId = String(user.id);
   if (stored.purpose === "activate" && stored.request_id) {
-    database.query("UPDATE auth_requests SET github_id = ?, github_login = ?, status = ? WHERE id = ?").run(githubId, user.login, githubId === config.ownerGithubId ? "approved" : "pending_approval", stored.request_id);
+    const accessRequest = database.query("SELECT device_name FROM auth_requests WHERE id = ?").get(stored.request_id) as { device_name: string } | null;
+    const status = githubId === config.ownerGithubId ? "approved" : "pending_approval";
+    const result = database.query("UPDATE auth_requests SET github_id = ?, github_login = ?, status = ? WHERE id = ?").run(githubId, user.login, status, stored.request_id);
+    if (status === "pending_approval" && result.changes > 0 && accessRequest) {
+      await notifyAccessRequest({ githubLogin: user.login, deviceName: accessRequest.device_name, reviewUrl: `${publicUrl}/admin` });
+    }
     return html(authPage("Request received", `Signed in as <strong>${escapeHtml(user.login)}</strong>. ${githubId === config.ownerGithubId ? "Return to the CLI to finish." : "Hsi can now approve this device. You may close this page."}`));
   }
   if (stored.purpose === "admin" && githubId === config.ownerGithubId) {
