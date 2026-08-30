@@ -15,6 +15,6 @@
     "build:web": "bun run --cwd web build",
     "check": "bun run test && bun run check:web && bun run build:server",
     "check:web": "bun run --cwd web check",
-    "test": "bash tests/api && bash tests/pipeline"
+    "test": "bun test server/notifications.test.ts && bash tests/api && bash tests/pipeline"
   }
 }

@@ -15,6 +15,9 @@ export const config = {
   githubClientSecret: process.env.MEDIA_GITHUB_CLIENT_SECRET ?? "",
   ownerGithubId: process.env.MEDIA_OWNER_GITHUB_ID ?? "",
   bootstrapAdminToken: process.env.MEDIA_ADMIN_TOKEN ?? "",
+  accessNotificationUrl: process.env.MEDIA_ACCESS_NOTIFICATION_URL ?? "",
+  accessNotificationSecret:
+    process.env.MEDIA_ACCESS_NOTIFICATION_SECRET ?? "",
   dailyByteLimit: positiveInteger("PR_MEDIA_DAILY_BYTES_PER_TOKEN", 500_000_000),
   dailyUploadLimit: positiveInteger("PR_MEDIA_DAILY_UPLOADS_PER_TOKEN", 50),
   requestByteLimit: positiveInteger("PR_MEDIA_MAX_REQUEST_BYTES", 95_000_000),
