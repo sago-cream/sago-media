@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  printf 'Usage: pr-media-optimize <source> <output-prefix>\n' >&2
+  printf 'Usage: sago-media-optimize <source> <output-prefix>\n' >&2
   exit 2
 }
 

@@ -1,13 +1,13 @@
 {
   "name": "sago-media-workspace",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "workspaces": [
     "web"
   ],
   "scripts": {
-    "dev": "PR_MEDIA_ROOT=.data/media MEDIA_ADMIN_TOKEN=local-development bun run --parallel dev:server dev:web",
+    "dev": "MEDIA_ROOT=.data/media MEDIA_ADMIN_TOKEN=local-development bun run --parallel dev:server dev:web",
     "dev:server": "bun --watch server/index.ts",
     "dev:web": "bun run --cwd web dev",
     "build": "bun run build:web && bun run build:server",

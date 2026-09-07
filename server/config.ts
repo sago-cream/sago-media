@@ -8,9 +8,9 @@ function positiveInteger(name: string, fallback: number) {
 
 export const config = {
   port: positiveInteger("PORT", 3000),
-  mediaRoot: process.env.PR_MEDIA_ROOT ?? "/srv/pr-media",
-  uploadCommand: process.env.PR_MEDIA_UPLOAD_COMMAND ?? "/usr/local/bin/pr-media-upload",
-  baseUrl: (process.env.PR_MEDIA_BASE_URL ?? "").replace(/\/$/, ""),
+  mediaRoot: process.env.MEDIA_ROOT ?? "/srv/sago-media",
+  uploadCommand: process.env.MEDIA_UPLOAD_COMMAND ?? "/usr/local/bin/sago-media-upload",
+  baseUrl: (process.env.MEDIA_BASE_URL ?? "").replace(/\/$/, ""),
   githubClientId: process.env.MEDIA_GITHUB_CLIENT_ID ?? "",
   githubClientSecret: process.env.MEDIA_GITHUB_CLIENT_SECRET ?? "",
   ownerGithubId: process.env.MEDIA_OWNER_GITHUB_ID ?? "",
@@ -18,11 +18,11 @@ export const config = {
   accessNotificationUrl: process.env.MEDIA_ACCESS_NOTIFICATION_URL ?? "",
   accessNotificationSecret:
     process.env.MEDIA_ACCESS_NOTIFICATION_SECRET ?? "",
-  dailyByteLimit: positiveInteger("PR_MEDIA_DAILY_BYTES_PER_TOKEN", 500_000_000),
-  dailyUploadLimit: positiveInteger("PR_MEDIA_DAILY_UPLOADS_PER_TOKEN", 50),
-  requestByteLimit: positiveInteger("PR_MEDIA_MAX_REQUEST_BYTES", 95_000_000),
-  concurrentUploadLimit: positiveInteger("PR_MEDIA_MAX_CONCURRENT_UPLOADS", 2),
-  uploadTimeoutMs: positiveInteger("PR_MEDIA_UPLOAD_TIMEOUT_MS", 900_000),
+  dailyByteLimit: positiveInteger("MEDIA_DAILY_BYTES_PER_TOKEN", 500_000_000),
+  dailyUploadLimit: positiveInteger("MEDIA_DAILY_UPLOADS_PER_TOKEN", 50),
+  requestByteLimit: positiveInteger("MEDIA_MAX_REQUEST_BYTES", 95_000_000),
+  concurrentUploadLimit: positiveInteger("MEDIA_MAX_CONCURRENT_UPLOADS", 2),
+  uploadTimeoutMs: positiveInteger("MEDIA_UPLOAD_TIMEOUT_MS", 900_000),
 } as const;
 
 export const stateDirectory = process.env.MEDIA_STATE_DIR ?? join(config.mediaRoot, ".service");

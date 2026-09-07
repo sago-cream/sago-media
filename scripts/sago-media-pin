@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  printf 'Usage: pr-media-pin [--remove] <media-url-or-path>\n' >&2
+  printf 'Usage: sago-media-pin [--remove] <media-url-or-path>\n' >&2
   exit 2
 }
 
@@ -17,12 +17,12 @@ target="${1%%\?*}"
 target="${target%%\#*}"
 filename="$(basename -- "$target")"
 if ! [[ "$filename" =~ ^([0-9a-f]{64})\.(gif|jpg|mp4|png|webp)$ ]]; then
-  printf 'Expected a content-addressed PR media URL or path.\n' >&2
+  printf 'Expected a content-addressed media URL or path.\n' >&2
   exit 2
 fi
 
 digest="${BASH_REMATCH[1]}"
-media_root="${PR_MEDIA_ROOT:-/srv/pr-media}"
+media_root="${MEDIA_ROOT:-/srv/sago-media}"
 pin_root="$media_root/.pins"
 pin_path="$pin_root/$digest"
 media_path="$media_root/${digest:0:2}/$filename"
