@@ -6,10 +6,10 @@ The former npm CLI and pull-request upload API were removed in v1.0.0. Use [`gh-
 
 ## Configuration
 
-- `PR_MEDIA_BASE_URL` and `MEDIA_PUBLIC_URL`
+- `MEDIA_BASE_URL` and `MEDIA_PUBLIC_URL`
 - `MEDIA_GITHUB_CLIENT_ID` and `MEDIA_GITHUB_CLIENT_SECRET`
 - `MEDIA_OWNER_GITHUB_ID`, using GitHub's immutable numeric user ID
-- upload limits from the existing `PR_MEDIA_*` variables, including `PR_MEDIA_UPLOAD_TIMEOUT_MS`
+- upload limits from `MEDIA_*` variables, including `MEDIA_UPLOAD_TIMEOUT_MS`
 
 The GitHub OAuth callback is `$MEDIA_PUBLIC_URL/auth/github/callback`.
 
@@ -42,6 +42,18 @@ docker build -t sago-media .
 After merging a release commit that updates `package.json`, create and push the matching tag. Tagged releases publish the multi-architecture container image.
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v2.0.0
+git push origin v2.0.0
 ```
+
+## Upgrade from 1.x
+
+Version 2.0 replaces `PR_MEDIA_*` settings with `MEDIA_*`, renames the product
+commands to `sago-media-*`, and uses `/srv/sago-media` as the default storage root.
+There are no legacy aliases. Update the environment and volume mount together
+with the image. Keep the existing media files and `.service/media.sqlite` so
+share URLs, device credentials, and sessions survive the upgrade.
+
+Sago Cloud owns the host migration, Compose service, timers, and Caddy routing.
+Follow its [media migration guide](https://github.com/sago-cream/sago-cloud/blob/main/docs/media-migration.md) before deploying 2.0. The HTTP endpoints and
+content-addressed share paths are unchanged; Sago Drop needs no client release.

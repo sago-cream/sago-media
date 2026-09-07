@@ -2,7 +2,7 @@
 set -euo pipefail
 shopt -s nullglob
 
-media_root="${PR_MEDIA_ROOT:-/srv/pr-media}"
+media_root="${MEDIA_ROOT:-/srv/sago-media}"
 checked=0
 failed=0
 fallback_lock=
@@ -31,11 +31,11 @@ for media_path in "$media_root"/[0-9a-f][0-9a-f]/*; do
   actual_digest="$(sha256sum -- "$media_path" | awk '{print $1}')"
   checked=$((checked + 1))
   if [ "$actual_digest" != "$expected_digest" ]; then
-    printf 'pr-media: checksum FAILED for %s\n' "$media_path" >&2
+    printf 'sago-media: checksum FAILED for %s\n' "$media_path" >&2
     failed=1
   fi
 done
 
-printf 'pr-media: verified %s content-addressed objects\n' "$checked"
+printf 'sago-media: verified %s content-addressed objects\n' "$checked"
 exit "$failed"
 

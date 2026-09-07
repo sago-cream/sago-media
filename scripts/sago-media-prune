@@ -2,11 +2,11 @@
 set -euo pipefail
 shopt -s nullglob
 
-media_root="${PR_MEDIA_ROOT:-/srv/pr-media}"
-high_watermark="${PR_MEDIA_HIGH_WATERMARK:-90}"
-low_watermark="${PR_MEDIA_LOW_WATERMARK:-85}"
-emergency_watermark="${PR_MEDIA_EMERGENCY_WATERMARK:-95}"
-emergency_low_watermark="${PR_MEDIA_EMERGENCY_LOW_WATERMARK:-80}"
+media_root="${MEDIA_ROOT:-/srv/sago-media}"
+high_watermark="${MEDIA_HIGH_WATERMARK:-90}"
+low_watermark="${MEDIA_LOW_WATERMARK:-85}"
+emergency_watermark="${MEDIA_EMERGENCY_WATERMARK:-95}"
+emergency_low_watermark="${MEDIA_EMERGENCY_LOW_WATERMARK:-80}"
 fallback_lock=
 
 cleanup() {
@@ -28,8 +28,8 @@ if ! [[ "$high_watermark" =~ ^[0-9]+$ ]] ||
 fi
 
 used_percent() {
-  if [ -n "${PR_MEDIA_USED_PERCENT:-}" ]; then
-    printf '%s\n' "$PR_MEDIA_USED_PERCENT"
+  if [ -n "${MEDIA_USED_PERCENT:-}" ]; then
+    printf '%s\n' "$MEDIA_USED_PERCENT"
   else
     df -P "$media_root" |
       awk 'NR == 2 { value=$5; gsub(/%/, "", value); print value }'
@@ -89,10 +89,10 @@ remove_media() {
   rm -f -- "$media_path"
   find "$media_root/.refs/$digest" -type f -delete 2>/dev/null || true
   find "$media_root/.refs/$digest" -depth -type d -empty -delete 2>/dev/null || true
-  printf 'pr-media: evicted %s media %s\n' "$reason" "$(basename -- "$media_path")"
+  printf 'sago-media: evicted %s media %s\n' "$reason" "$(basename -- "$media_path")"
 }
 
-if [ "${PR_MEDIA_LOCK_HELD:-0}" != 1 ]; then
+if [ "${MEDIA_LOCK_HELD:-0}" != 1 ]; then
   if command -v flock >/dev/null 2>&1; then
     exec 9>"$media_root/.upload.lock"
     flock 9

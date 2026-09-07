@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-[ "$#" -eq 1 ] || { printf 'Usage: pr-media-upload <image-or-video>\n' >&2; exit 2; }
+[ "$#" -eq 1 ] || { printf 'Usage: sago-media-upload <image-or-video>\n' >&2; exit 2; }
 
 source_path="$(realpath -- "$1")"
 [ -f "$source_path" ] || exit 2
@@ -37,13 +37,13 @@ validate_video() {
   done <<<"$audio_codecs"
 }
 
-media_root="${PR_MEDIA_ROOT:-/srv/pr-media}"
-base_url="${PR_MEDIA_BASE_URL:?Set PR_MEDIA_BASE_URL to the public media URL}"
+media_root="${MEDIA_ROOT:-/srv/sago-media}"
+base_url="${MEDIA_BASE_URL:?Set MEDIA_BASE_URL to the public media URL}"
 base_url="${base_url%/}"
-image_limit="${PR_MEDIA_MAX_IMAGE_BYTES:-52428800}"
-video_limit="${PR_MEDIA_MAX_VIDEO_BYTES:-104857600}"
-optimizer="${PR_MEDIA_OPTIMIZE_COMMAND:-pr-media-optimize}"
-pruner="${PR_MEDIA_PRUNE_COMMAND:-pr-media-prune}"
+image_limit="${MEDIA_MAX_IMAGE_BYTES:-52428800}"
+video_limit="${MEDIA_MAX_VIDEO_BYTES:-104857600}"
+optimizer="${MEDIA_OPTIMIZE_COMMAND:-sago-media-optimize}"
+pruner="${MEDIA_PRUNE_COMMAND:-sago-media-prune}"
 
 extension="${source_path##*.}"
 extension="$(printf '%s' "$extension" | tr '[:upper:]' '[:lower:]')"
@@ -78,7 +78,7 @@ cleanup() {
 trap cleanup EXIT
 
 optimized_path="$source_path"
-if [ "$should_optimize" = 1 ] && [ "${PR_MEDIA_OPTIMIZE:-1}" = 1 ]; then
+if [ "$should_optimize" = 1 ] && [ "${MEDIA_OPTIMIZE:-1}" = 1 ]; then
   optimized_path="$("$optimizer" "$source_path" "$temporary_dir/media")"
   extension="${optimized_path##*.}"
 fi
@@ -100,7 +100,7 @@ else
 fi
 
 if command -v "$pruner" >/dev/null 2>&1; then
-  PR_MEDIA_LOCK_HELD=1 "$pruner"
+  MEDIA_LOCK_HELD=1 "$pruner"
 fi
 
 if [ ! -f "$destination" ]; then

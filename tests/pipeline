@@ -2,10 +2,10 @@
 set -euo pipefail
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-uploader="$root/scripts/pr-media-upload"
-pruner="$root/scripts/pr-media-prune"
-pin="$root/scripts/pr-media-pin"
-verify="$root/scripts/pr-media-verify"
+uploader="$root/scripts/sago-media-upload"
+pruner="$root/scripts/sago-media-prune"
+pin="$root/scripts/sago-media-pin"
+verify="$root/scripts/sago-media-verify"
 work="$(mktemp -d)"
 trap 'rm -rf -- "$work"' EXIT
 
@@ -14,7 +14,7 @@ source="$work/preview.png"
 printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=' | base64 --decode >"$source"
 digest="$(sha256sum "$source" | awk '{print $1}')"
 
-output="$(PR_MEDIA_ROOT="$media" PR_MEDIA_BASE_URL=https://media.example.test PR_MEDIA_PRUNE_COMMAND="$pruner" PR_MEDIA_OPTIMIZE=0 PR_MEDIA_USED_PERCENT=0 "$uploader" "$source")"
+output="$(MEDIA_ROOT="$media" MEDIA_BASE_URL=https://media.example.test MEDIA_PRUNE_COMMAND="$pruner" MEDIA_OPTIMIZE=0 MEDIA_USED_PERCENT=0 "$uploader" "$source")"
 [ "$output" = "![Media](https://media.example.test/${digest:0:2}/$digest.png)" ]
 [ -f "$media/${digest:0:2}/$digest.png" ]
 
@@ -44,27 +44,27 @@ printf '%s\n' '#!/usr/bin/env bash' 'exit 99' >"$fake_bin/fail-optimizer"
 chmod +x "$fake_bin/ffprobe" "$fake_bin/fail-optimizer"
 printf '\x00\x00\x00\x18ftypisom\x00\x00\x02\x00isomiso2mp41' >"$video_source"
 video_digest="$(sha256sum "$video_source" | awk '{print $1}')"
-video_output="$(PATH="$fake_bin:$PATH" PR_MEDIA_ROOT="$video_media" PR_MEDIA_BASE_URL=https://media.example.test PR_MEDIA_PRUNE_COMMAND="$pruner" PR_MEDIA_OPTIMIZE_COMMAND="$fake_bin/fail-optimizer" PR_MEDIA_USED_PERCENT=0 "$uploader" "$video_source")"
+video_output="$(PATH="$fake_bin:$PATH" MEDIA_ROOT="$video_media" MEDIA_BASE_URL=https://media.example.test MEDIA_PRUNE_COMMAND="$pruner" MEDIA_OPTIMIZE_COMMAND="$fake_bin/fail-optimizer" MEDIA_USED_PERCENT=0 "$uploader" "$video_source")"
 [ "$video_output" = "https://media.example.test/${video_digest:0:2}/$video_digest.mp4" ]
 [ -f "$video_media/${video_digest:0:2}/$video_digest.mp4" ]
-if PATH="$fake_bin:$PATH" FAKE_VIDEO_CODEC=hevc PR_MEDIA_ROOT="$video_media" PR_MEDIA_BASE_URL=https://media.example.test PR_MEDIA_PRUNE_COMMAND="$pruner" PR_MEDIA_USED_PERCENT=0 "$uploader" "$video_source" >/dev/null 2>&1; then
+if PATH="$fake_bin:$PATH" FAKE_VIDEO_CODEC=hevc MEDIA_ROOT="$video_media" MEDIA_BASE_URL=https://media.example.test MEDIA_PRUNE_COMMAND="$pruner" MEDIA_USED_PERCENT=0 "$uploader" "$video_source" >/dev/null 2>&1; then
   printf 'media pipeline accepted an unprepared video\n' >&2
   exit 1
 fi
 
 install -d "$media/.refs/$digest/sago-cream/example"
 touch "$media/.refs/$digest/sago-cream/example/42"
-PR_MEDIA_ROOT="$media" PR_MEDIA_USED_PERCENT=80 PR_MEDIA_HIGH_WATERMARK=70 PR_MEDIA_LOW_WATERMARK=60 PR_MEDIA_EMERGENCY_WATERMARK=90 PR_MEDIA_EMERGENCY_LOW_WATERMARK=50 "$pruner" >/dev/null
+MEDIA_ROOT="$media" MEDIA_USED_PERCENT=80 MEDIA_HIGH_WATERMARK=70 MEDIA_LOW_WATERMARK=60 MEDIA_EMERGENCY_WATERMARK=90 MEDIA_EMERGENCY_LOW_WATERMARK=50 "$pruner" >/dev/null
 [ -f "$media/${digest:0:2}/$digest.png" ]
 
-PR_MEDIA_ROOT="$media" "$pin" "$media/${digest:0:2}/$digest.png" >/dev/null
+MEDIA_ROOT="$media" "$pin" "$media/${digest:0:2}/$digest.png" >/dev/null
 [ -f "$media/.pins/$digest" ]
-PR_MEDIA_ROOT="$media" "$pin" --remove "$media/${digest:0:2}/$digest.png" >/dev/null
+MEDIA_ROOT="$media" "$pin" --remove "$media/${digest:0:2}/$digest.png" >/dev/null
 [ ! -e "$media/.pins/$digest" ]
 
-PR_MEDIA_ROOT="$media" "$verify" >/dev/null
+MEDIA_ROOT="$media" "$verify" >/dev/null
 printf corrupted >>"$media/${digest:0:2}/$digest.png"
-if PR_MEDIA_ROOT="$media" "$verify" >/dev/null 2>&1; then
+if MEDIA_ROOT="$media" "$verify" >/dev/null 2>&1; then
   printf 'verification accepted corrupted media\n' >&2
   exit 1
 fi

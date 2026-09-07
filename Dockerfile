@@ -23,16 +23,16 @@ RUN groupadd --gid 10001 sago-media \
 
 WORKDIR /app
 
-COPY --chmod=755 scripts/pr-media-optimize /usr/local/bin/pr-media-optimize
-COPY --chmod=755 scripts/pr-media-pin /usr/local/bin/pr-media-pin
-COPY --chmod=755 scripts/pr-media-prune /usr/local/bin/pr-media-prune
-COPY --chmod=755 scripts/pr-media-upload /usr/local/bin/pr-media-upload
-COPY --chmod=755 scripts/pr-media-verify /usr/local/bin/pr-media-verify
+COPY --chmod=755 scripts/sago-media-optimize /usr/local/bin/sago-media-optimize
+COPY --chmod=755 scripts/sago-media-pin /usr/local/bin/sago-media-pin
+COPY --chmod=755 scripts/sago-media-prune /usr/local/bin/sago-media-prune
+COPY --chmod=755 scripts/sago-media-upload /usr/local/bin/sago-media-upload
+COPY --chmod=755 scripts/sago-media-verify /usr/local/bin/sago-media-verify
 COPY server /app/server
 COPY --from=web-build /app/web/dist /app/web/dist
 
-ENV PR_MEDIA_ROOT=/srv/pr-media
-ENV PR_MEDIA_MAX_VIDEO_BYTES=95000000
+ENV MEDIA_ROOT=/srv/sago-media
+ENV MEDIA_MAX_VIDEO_BYTES=95000000
 
 EXPOSE 3000
 USER 10001:10001
