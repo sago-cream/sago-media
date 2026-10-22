@@ -1,10 +1,14 @@
 FROM oven/bun:1.3.9-debian AS web-build
 
+USER root
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends --reinstall ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 COPY package.json bun.lock bunfig.toml /app/
 COPY web/package.json /app/web/package.json
-RUN bun install --frozen-lockfile
+RUN bun install --cafile=/etc/ssl/certs/ca-certificates.crt --frozen-lockfile
 
 COPY web /app/web
 RUN bun run build:web
@@ -13,6 +17,9 @@ FROM oven/bun:1.3.9-debian
 
 USER root
 
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends --reinstall ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates ffmpeg file jpegoptim libimage-exiftool-perl optipng util-linux webp \
