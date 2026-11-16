@@ -22,6 +22,7 @@ export const config = {
   dailyUploadLimit: positiveInteger("MEDIA_DAILY_UPLOADS_PER_TOKEN", 50),
   requestByteLimit: positiveInteger("MEDIA_MAX_REQUEST_BYTES", 95_000_000),
   concurrentUploadLimit: positiveInteger("MEDIA_MAX_CONCURRENT_UPLOADS", 2),
+  allowLegacyUploads: process.env.MEDIA_ALLOW_LEGACY_UPLOADS === "1",
   uploadTimeoutMs: positiveInteger("MEDIA_UPLOAD_TIMEOUT_MS", 900_000),
 } as const;
 

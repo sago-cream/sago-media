@@ -4,13 +4,21 @@ import { config, publicOrigin } from "./config";
 import { database } from "./database";
 import { authPage, html, requestCode, response } from "./shared";
 import { upload } from "./uploads";
+import { createUploadJob, getUploadJob, startUploadWorker, stopUploadWorker, upgradeRequired } from "./upload-jobs";
 
-Bun.serve({ port: config.port, async fetch(request) {
+startUploadWorker();
+
+const server = Bun.serve({ port: config.port, idleTimeout: 60, async fetch(request) {
   const url = new URL(request.url);
   if (request.method === "GET" && url.pathname === "/health") {
     return config.baseUrl && publicOrigin && config.githubClientId && config.githubClientSecret && config.ownerGithubId ? response("ok\n") : response("configuration incomplete\n", 503);
   }
-  if (request.method === "POST" && url.pathname === "/v1/uploads") return upload(request);
+  if (request.method === "POST" && url.pathname === "/v1/uploads") {
+    return config.allowLegacyUploads ? upload(request) : upgradeRequired();
+  }
+  if (request.method === "POST" && url.pathname === "/v1/upload-jobs") return createUploadJob(request);
+  const job = /^\/v1\/upload-jobs\/([a-f0-9-]{36})$/.exec(url.pathname);
+  if (request.method === "GET" && job) return getUploadJob(request, job[1]);
   if (request.method === "POST" && url.pathname === "/v1/auth/device") return createDeviceRequest(request);
   const device = /^\/v1\/auth\/device\/([^/]+)$/.exec(url.pathname);
   if (request.method === "GET" && device) return pollDevice(request, device[1]);
@@ -29,3 +37,11 @@ Bun.serve({ port: config.port, async fetch(request) {
   if (request.method === "POST" && url.pathname.startsWith("/admin/")) return legacyDashboardMutation(request, url.pathname);
   return response("Not found.\n", 404);
 } });
+
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  process.on(signal, async () => {
+    await stopUploadWorker();
+    server.stop(true);
+    process.exit(0);
+  });
+}

@@ -8,7 +8,7 @@ import { now } from "./shared";
 mkdirSync(stateDirectory, { recursive: true });
 
 export const database = new Database(join(stateDirectory, "media.sqlite"), { create: true });
-database.exec("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;");
+database.exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON;");
 database.exec(`
   CREATE TABLE IF NOT EXISTS auth_requests (
     id TEXT PRIMARY KEY,
@@ -88,3 +88,23 @@ export function cleanExpired() {
   database.query("DELETE FROM oauth_states WHERE expires_at < ?").run(now());
   database.query("DELETE FROM sessions WHERE expires_at < ?").run(now());
 }
+
+// Input files and this queue share the persistent media volume.
+database.exec(`
+  CREATE TABLE IF NOT EXISTS upload_jobs (
+    id TEXT PRIMARY KEY,
+    credential_id TEXT NOT NULL REFERENCES credentials(id),
+    filename TEXT NOT NULL,
+    extension TEXT NOT NULL,
+    bytes INTEGER NOT NULL,
+    sha256 TEXT NOT NULL,
+    quota_date TEXT NOT NULL,
+    status TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    result TEXT,
+    error TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS upload_jobs_queue ON upload_jobs(status, created_at);
+`);
