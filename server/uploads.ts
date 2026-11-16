@@ -9,18 +9,19 @@ import { json, response } from "./shared";
 const supportedExtensions = new Set(["gif", "jpeg", "jpg", "mp4", "png", "webp"]);
 let activeUploads = 0;
 
-export function getActiveUploads() { return activeUploads; }
+export function getActiveUploads() {
+  const pending = database.query("SELECT COUNT(*) AS count FROM upload_jobs WHERE status IN ('receiving', 'queued', 'processing')").get() as { count: number };
+  return activeUploads + pending.count;
+}
 
-function reserveQuota(actor: string, bytes: number) {
-  const date = new Date().toISOString().slice(0, 10);
+export function reserveQuota(actor: string, bytes: number, date = new Date().toISOString().slice(0, 10)) {
   const usage = database.query("SELECT bytes, uploads FROM usage WHERE date = ? AND actor = ?").get(date, actor) as { bytes: number; uploads: number } | null;
   if ((usage?.bytes ?? 0) + bytes > config.dailyByteLimit || (usage?.uploads ?? 0) + 1 > config.dailyUploadLimit) return false;
   database.query("INSERT INTO usage(date, actor, bytes, uploads) VALUES (?, ?, ?, 1) ON CONFLICT(date, actor) DO UPDATE SET bytes = bytes + excluded.bytes, uploads = uploads + 1").run(date, actor, bytes);
   return true;
 }
 
-function releaseQuota(actor: string, bytes: number) {
-  const date = new Date().toISOString().slice(0, 10);
+export function releaseQuota(actor: string, bytes: number, date = new Date().toISOString().slice(0, 10)) {
   database.query("UPDATE usage SET bytes = MAX(0, bytes - ?), uploads = MAX(0, uploads - 1) WHERE date = ? AND actor = ?").run(bytes, date, actor);
   database.query("DELETE FROM usage WHERE date = ? AND actor = ? AND bytes = 0 AND uploads = 0").run(date, actor);
 }

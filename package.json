@@ -1,6 +1,6 @@
 {
   "name": "sago-media-workspace",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -15,6 +15,6 @@
     "build:web": "bun run --cwd web build",
     "check": "bun run test && bun run check:web && bun run build:server",
     "check:web": "bun run --cwd web check",
-    "test": "bun test server/notifications.test.ts && bash tests/api && bash tests/pipeline"
+    "test": "bun test server/notifications.test.ts server/upload-jobs.test.ts && bash tests/api && bash tests/pipeline"
   }
 }

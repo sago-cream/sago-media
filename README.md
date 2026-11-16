@@ -57,3 +57,25 @@ share URLs, device credentials, and sessions survive the upgrade.
 Sago Cloud owns the host migration, Compose service, timers, and Caddy routing.
 Follow its [media migration guide](https://github.com/sago-cream/sago-cloud/blob/main/docs/media-migration.md) before deploying 2.0. The HTTP endpoints and
 content-addressed share paths are unchanged; Sago Drop needs no client release.
+
+## Upload jobs
+
+Sago Drop 0.11.0 and later use `POST /v1/upload-jobs` with a UUID
+`Idempotency-Key` and `X-Media-SHA256`. A `202` response means the complete,
+checksum-verified file and its SQLite job are saved on the persistent volume.
+Authenticated `GET /v1/upload-jobs/:id` returns `receiving`, `queued`,
+`processing`, `ready` with a final result, or `failed` with an explanation.
+Jobs are visible only to devices belonging to the same GitHub account.
+
+The in-process worker bounds concurrency and processing duration, recovers jobs
+on restart, and retains terminal results for seven days. Retries with the same
+ID and file do not create a second job or charge quota twice. Failed jobs refund
+the original reservation, including when processing crosses midnight. An
+interrupted, unacknowledged transfer can be uploaded again with the same ID.
+
+The retired `/v1/uploads` endpoint returns a plain-text `426` upgrade instruction
+that existing clients display. For a staged rollout only, set
+`MEDIA_ALLOW_LEGACY_UPLOADS=1` to temporarily keep synchronous uploads working.
+Deploy the job-capable server with this setting, publish Sago Drop 0.11.0, then
+remove the setting after verifying the app release is downloadable. Keep the
+media volume mounted: both staged input and the queue live under `.service`.
